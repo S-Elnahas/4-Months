@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy 4 Months, Farah!</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
+    
+    <!-- New: Tone.js for audio -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* New scrolling gradient background */
+            background: linear-gradient(180deg, #c084fc 0%, #7e22ce 100%);
+            background-attachment: fixed; /* Keeps gradient in place while scrolling */
+        }
+
+        .font-display {
+            font-family: 'Pacifico', cursive;
+        }
+
+        /* Classes for the background-change effect (these will override the gradient) */
+        .bg-hover-1 {
+            background-color: #f5d0fe; /* light purple */
+        }
+        .bg-hover-2 {
+            background-color: #fbcfe8; /* light pink */
+        }
+        .bg-hover-3 {
+            background-color: #e9d5ff; /* light lavender */
+        }
+
+        /* Modal styles */
+        .modal {
+            transition: opacity 0.3s ease;
+            opacity: 0; /* start hidden (for smooth transitions) */
+        }
+        .modal.flex {
+            opacity: 1; /* visible state */
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+            transform: scale(0.95);
+        }
+        .modal.flex .modal-content {
+            transform: scale(1);
+        }
+        
+        /* Gallery image height */
+        /* Gallery / masonry styles */
+
+        .masonry-grid {
+            display: grid;
+            /* responsive normal grid: items flow into columns with minimal overlap risk */
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 6px; /* subtle separator between photos */
+            align-items: start;
+        }
+
+        .gallery-item {
+            --delay: 0ms;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            display: block;
+            transform-origin: center center;
+            transform: translateY(0) scale(1);
+            transition: transform 0.28s ease, box-shadow 0.28s ease, z-index 0.28s ease;
+            margin: 0; /* ensure no extra spacing */
+        }
+
+        /* Make sure tiles are fully visible inside their grid cell */
+        .tile {
+            overflow: hidden;
+        }
+
+        /* subtle separator look: slightly rounded corners, gentle border */
+        .gallery-item {
+            border-radius: 8px;
+            background-clip: padding-box;
+        }
+
+        /* Tile size helpers (row spans are calculated with JS from data-row) */
+        .tile-large { box-shadow: 0 20px 40px rgba(124,58,237,0.15); }
+        .tile-medium { box-shadow: 0 10px 24px rgba(124,58,237,0.12); }
+        .tile-small { box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+        .tile-tall { box-shadow: 0 18px 36px rgba(99,102,241,0.12); }
+        .tile-wide { box-shadow: 0 14px 30px rgba(236,72,153,0.10); }
+
+        /* Hover lift and straighten rotation */
+        .gallery-item:hover {
+            transform: translateY(-6px) scale(1.02);
+            z-index: 30;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.14);
+        }
+
+        /* reveal animation using CSS variables for stagger */
+        .reveal {
+            opacity: 0;
+            transform: translateY(14px) scale(0.995);
+            transition: opacity 420ms ease var(--delay), transform 420ms cubic-bezier(.2,.9,.2,1) var(--delay);
+        }
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Thumbnail strip styles */
+        .thumbnail-strip { max-width: 820px; }
+        .thumbnail-strip .thumb { flex: 0 0 auto; }
+
+        /* Make the layout responsive */
+        @media (max-width: 1024px) {
+            .masonry-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .masonry-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (min-width: 640px) { /* sm breakpoint */
+             .gallery-item {
+                     height: 384px; /* default reserved height for older non-masonry images */
+             }
+        }
+
+        /* --- New Animations --- */
+
+        /* Floating hearts container */
+        #floating-elements-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicking through it */
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .heart {
+            position: absolute;
+            bottom: -50px; /* Start off-screen */
+            font-size: 20px;
+            color: #f472b6; /* Pink */
+            opacity: 0;
+            animation: floatUp 10s infinite linear;
+        }
+        
+        /* Stagger the animations */
+        .heart:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .heart:nth-child(2) { left: 20%; animation-delay: 2s; font-size: 14px; opacity: 0.5; }
+        .heart:nth-child(3) { left: 30%; animation-delay: 4s; }
+        .heart:nth-child(4) { left: 40%; animation-delay: 1s; font-size: 16px; opacity: 0.7; }
+        .heart:nth-child(5) { left: 50%; animation-delay: 6s; }
+        .heart:nth-child(6) { left: 60%; animation-delay: 8s; font-size: 18px; }
+        .heart:nth-child(7) { left: 70%; animation-delay: 3s; opacity: 0.6; }
+        .heart:nth-child(8) { left: 80%; animation-delay: 5s; font-size: 12px; }
+        .heart:nth-child(9) { left: 90%; animation-delay: 7s; }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Scroll-down arrow */
+        .scroll-down-arrow {
+            font-size: 3rem;
+            color: #f9a8d4; /* Changed to light pink */
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Fade-in sections on scroll */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- New Music Player Styles --- */
+        .track-item {
+            transition: all 0.3s ease;
+        }
+        
+        .play-button .play-icon {
+            display: block;
+        }
+        .play-button .playing-icon {
+            display: none;
+        }
+        .track-item .now-playing-status {
+            display: none;
+        }
+
+        /* When the 'playing' class is added */
+        .track-item.playing {
+            background-color: #fce7f3; /* light pink */
+        }
+        .track-item.playing .play-button {
+            background-color: #a21caf; /* fuchsia-700 */
+        }
+        .track-item.playing .play-icon {
+            display: none;
+        }
+        .track-item.playing .playing-icon {
+            display: block;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        .track-item.playing .now-playing-status {
+            display: block;
+        }
+
+    </style>
+</head>
+<body class="text-gray-100 antialiased"> <!-- Changed text-gray-800 to text-gray-100 -->
+
+    <!-- New: Floating Elements Container -->
+    <div id="floating-elements-container">
+        <div class="heart">❤️</div>
+        <div class="heart">💖</div>
+        <div class="heart">✨</div>
+        <div class="heart">❤️</div>
+        <div class="heart">💖</div>
+        <div class="heart">✨</div>
+        <div class="heart">❤️</div>
+        <div class="heart">💖</div>
+        <div class="heart">✨</div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-4 max-w-4xl min-h-screen relative z-20">
+
+        <!-- Header -->
+        <header class="text-center my-12 md:my-20">
+            <h1 class="font-display text-5xl md:text-7xl text-white">Happy 4 Months, Farah! 🎉</h1> <!-- Changed to text-white -->
+            <p class="text-lg md:text-2xl text-pink-300 mt-4">Our story... so far! 💖</p> <!-- Changed to text-pink-300 -->
+            <!-- New: Scroll Down Arrow -->
+            <div class="mt-16 md:mt-24">
+                <div class="scroll-down-arrow">↓</div>
+            </div>
+        </header>
+
+    <!-- Top thumbnail strip for quick highlights -->
+        <div class="w-full flex justify-center mb-6 items-center gap-4">
+            <div id="thumb-strip" class="thumbnail-strip flex gap-3 overflow-x-auto py-2">
+                <img src="Sun set.jpeg" alt="Sun set" class="thumb w-20 h-12 object-cover rounded-md cursor-pointer">
+                <img src="ss2.jpeg" alt="ss2" class="thumb w-20 h-12 object-cover rounded-md cursor-pointer">
+                <img src="selfiee.jpeg" alt="selfiee" class="thumb w-20 h-12 object-cover rounded-md cursor-pointer">
+                <img src="grad 1.jpeg" alt="grad 1" class="thumb w-20 h-12 object-cover rounded-md cursor-pointer">
+                <img src="opening.jpeg" alt="opening" class="thumb w-20 h-12 object-cover rounded-md cursor-pointer">
+                <img src="car.jpeg" alt="car" class="thumb w-20 h-12 object-cover rounded-md cursor-pointer">
+            </div>
+        </div>
+
+        <!-- Main Photo Section -->
+        <!-- Added 'fade-in-section' class -->
+        <section class="my-16 fade-in-section">
+            <img src="Blossom Tree.jpeg" 
+                 alt="Us by the pink blossom tree" 
+                 class="w-full max-w-lg mx-auto rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-purple-300">
+            <p class="text-center text-lg text-purple-200 italic mt-8 px-4">Four months of laughs, adventures, and being our amazing selves. ✨</p> <!-- Changed to text-purple-200 -->
+        </section>
+
+        <!-- Inside Jokes Section -->
+        <!-- Added 'fade-in-section' class -->
+        <section class="my-20 p-6 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg fade-in-section">
+            <h2 class="font-display text-4xl text-purple-700 text-center mb-8">The "Us" Dictionary 📓</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Joke 1 -->
+                <div class="p-4 bg-pink-200 rounded-lg shadow-md transform -rotate-3 transition-transform hover:rotate-0 hover:scale-110 hover:shadow-xl cursor-default">
+                    <p class="font-bold text-center text-sm md:text-base text-pink-800">"bakhaf men el commitment"</p>
+                </div>
+                <!-- Joke 2 -->
+                <div class="p-4 bg-purple-200 rounded-lg shadow-md transform rotate-2 transition-transform hover:rotate-0 hover:scale-110 hover:shadow-xl cursor-default">
+                    <p class="font-bold text-center text-sm md:text-base text-purple-800">"samsies"</p>
+                </div>
+                <!-- Joke 3 -->
+                <div class="p-4 bg-pink-200 rounded-lg shadow-md transform -rotate-1 transition-transform hover:rotate-0 hover:scale-110 hover:shadow-xl cursor-default">
+                    <p class="font-bold text-center text-sm md:text-base text-pink-800">"3amatannn..."</p>
+                </div>
+                <!-- Joke 4 -->
+                <div class="p-4 bg-purple-200 rounded-lg shadow-md transform rotate-3 transition-transform hover:rotate-0 hover:scale-110 hover:shadow-xl cursor-default">
+                    <p class="font-bold text-center text-sm md:text-base text-purple-800">"Sahbety el tanya"</p>
+                </div>
+            </div>
+            <!-- You could add small icons/images here -->
+            <!-- <img src="your-icon.png" class="w-10 h-10 absolute -top-4 -left-4"> -->
+        </section>
+
+        <!-- New: Music Playlist Section (moved above gallery) -->
+        <section class="my-20 p-6 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg fade-in-section">
+            <h2 class="font-display text-4xl text-purple-700 text-center mb-8">Our 4-Month Mix 🎶</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                
+                <!-- Song 1 -->
+                <div class="track-item p-6 bg-white/50 rounded-lg shadow-md flex flex-col items-center text-center">
+                    <button class="play-button w-16 h-16 rounded-full bg-pink-500 text-white flex-shrink-0 flex items-center justify-center mb-4 transition-all duration-300 hover:bg-pink-600" data-melody="1">
+                        <!-- Play Icon -->
+                        <svg class="play-icon w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <!-- Playing Icon (Sound Wave) -->
+                        <svg class="playing-icon w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8v8m4-8v8m4-8v8m4-8v8m4-8v8"></path></svg>
+                    </button>
+                    <div>
+                        <p class="font-bold text-gray-800">Buzzcut Season</p>
+                        <p class="text-sm text-gray-600">Lorde</p>
+                        <p class="now-playing-status text-sm text-purple-600 italic mt-1">Now playing...</p>
+                    </div>
+                </div>
+
+                <!-- Song 2 -->
+                <div class="track-item p-6 bg-white/50 rounded-lg shadow-md flex flex-col items-center text-center">
+                    <button class="play-button w-16 h-16 rounded-full bg-pink-500 text-white flex-shrink-0 flex items-center justify-center mb-4 transition-all duration-300 hover:bg-pink-600" data-melody="2">
+                        <!-- Play Icon -->
+                        <svg class="play-icon w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <!-- Playing Icon (Sound Wave) -->
+                        <svg class="playing-icon w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8v8m4-8v8m4-8v8m4-8v8m4-8v8"></path></svg>
+                    </button>
+                    <div>
+                        <p class="font-bold text-gray-800">So Easy (To Fall In Love)</p>
+                        <p class="text-sm text-gray-600">Olivia Dean</p>
+                        <p class="now-playing-status text-sm text-purple-600 italic mt-1">Now playing...</p>
+                    </div>
+                </div>
+
+                <!-- Song 3 -->
+                <div class="track-item p-6 bg-white/50 rounded-lg shadow-md flex flex-col items-center text-center">
+                    <button class="play-button w-16 h-16 rounded-full bg-pink-500 text-white flex-shrink-0 flex items-center justify-center mb-4 transition-all duration-300 hover:bg-pink-600" data-melody="3">
+                        <!-- Play Icon -->
+                        <svg class="play-icon w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <!-- Playing Icon (Sound Wave) -->
+                        <svg class="playing-icon w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8v8m4-8v8m4-8v8m4-8v8m4-8v8"></path></svg>
+                    </button>
+                    <div>
+                        <p class="font-bold text-gray-800">Hold My Girl</p>
+                        <p class="text-sm text-gray-600">George Ezra</p>
+                        <p class="now-playing-status text-sm text-purple-600 italic mt-1">Now playing...</p>
+                    </div>
+                </div>
+
+                <!-- New Song 4 -->
+                <div class="track-item p-6 bg-white/50 rounded-lg shadow-md flex flex-col items-center text-center">
+                    <button class="play-button w-16 h-16 rounded-full bg-pink-500 text-white flex-shrink-0 flex items-center justify-center mb-4 transition-all duration-300 hover:bg-pink-600" data-melody="4">
+                        <!-- Play Icon -->
+                        <svg class="play-icon w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <!-- Playing Icon (Sound Wave) -->
+                        <svg class="playing-icon w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8v8m4-8v8m4-8v8m4-8v8m4-8v8"></path></svg>
+                    </button>
+                    <div>
+                        <p class="font-bold text-gray-800">Midnight Memories</p>
+                        <p class="text-sm text-gray-600">One Direction</p>
+                        <p class="now-playing-status text-sm text-purple-600 italic mt-1">Now playing...</p>
+                    </div>
+                </div>
+
+                <!-- New Song 5 -->
+                <div class="track-item p-6 bg-white/50 rounded-lg shadow-md flex flex-col items-center text-center">
+                    <button class="play-button w-16 h-16 rounded-full bg-pink-500 text-white flex-shrink-0 flex items-center justify-center mb-4 transition-all duration-300 hover:bg-pink-600" data-melody="5">
+                        <!-- Play Icon -->
+                        <svg class="play-icon w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <!-- Playing Icon (Sound Wave) -->
+                        <svg class="playing-icon w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8v8m4-8v8m4-8v8m4-8v8m4-8v8"></path></svg>
+                    </button>
+                    <div>
+                        <p class="font-bold text-gray-800">Payphone</p>
+                        <p class="text-sm text-gray-600">Maroon 5</p>
+                        <p class="now-playing-status text-sm text-purple-600 italic mt-1">Now playing...</p>
+                    </div>
+                </div>
+
+                <!-- New Song 6 -->
+                <div class="track-item p-6 bg-white/50 rounded-lg shadow-md flex flex-col items-center text-center">
+                    <button class="play-button w-16 h-16 rounded-full bg-pink-500 text-white flex-shrink-0 flex items-center justify-center mb-4 transition-all duration-300 hover:bg-pink-600" data-melody="6">
+                        <!-- Play Icon -->
+                        <svg class="play-icon w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <!-- Playing Icon (Sound Wave) -->
+                        <svg class="playing-icon w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8v8m4-8v8m4-8v8m4-8v8m4-8v8"></path></svg>
+                    </button>
+                    <div>
+                        <p class="font-bold text-gray-800">Bohemian Rhapsody</p>
+                        <p class="text-sm text-gray-600">Queen</p>
+                        <p class="now-playing-status text-sm text-purple-600 italic mt-1">Now playing...</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+       <!-- Gallery Section (dynamic masonry-like layout) -->
+       <section class="my-20">
+          <h2 class="font-display text-4xl text-fuchsia-200 text-center mb-10">A Few of My Favorite Moments</h2>
+
+          <!-- Masonry Grid -->
+          <div id="gallery-grid" class="masonry-grid">
+             <!-- Row 1: feature + two small -->
+             <img src="Painting.jpeg"
+                 alt="Holding our Starry Night painting"
+                 data-bg="bg-hover-1"
+                 data-col="2" data-row="56"
+                 class="gallery-item tile tile-large rounded-2xl shadow-lg cursor-pointer">
+
+             <img src="ss2.jpeg"
+                 alt="ss2"
+                 data-bg="bg-hover-3"
+                 data-col="1" data-row="24"
+                 class="gallery-item tile tile-small rounded-2xl shadow-lg cursor-pointer">
+
+             <img src="Sun set.jpeg"
+                 alt="Sun set"
+                 data-bg="bg-hover-2"
+                 data-col="1" data-row="36"
+                 class="gallery-item tile tile-medium rounded-2xl shadow-lg cursor-pointer">
+
+             <!-- Row 2: featured portrait + tall elevator -->
+             <img src="Dons.jpeg"
+                 alt="Dons portrait"
+                 data-bg="bg-hover-2"
+                 data-col="2" data-row="56"
+                 class="gallery-item tile tile-large rounded-2xl shadow-lg cursor-pointer">
+
+             <img src="elevator.jpg"
+                 alt="Elevator snapshot"
+                 data-bg="bg-hover-3"
+                 data-col="1" data-row="60"
+                 class="gallery-item tile tile-tall rounded-2xl shadow-lg cursor-pointer">
+
+             <img src="selfiee.jpeg"
+                 alt="selfiee"
+                 data-bg="bg-hover-1"
+                 data-col="1" data-row="24"
+                 class="gallery-item tile tile-small rounded-2xl shadow-lg cursor-pointer">
+
+             <!-- Row 3: medium + medium + small -->
+             <img src="Beach.jpeg"
+                 alt="Beach selfie"
+                 data-bg="bg-hover-3"
+                 data-col="1" data-row="36"
+                 class="gallery-item tile tile-medium rounded-2xl shadow-lg cursor-pointer">
+
+             <img src="grad 1.jpeg"
+                 alt="grad 1"
+                 data-bg="bg-hover-2"
+                 data-col="1" data-row="36"
+                 class="gallery-item tile tile-medium rounded-2xl shadow-lg cursor-pointer">
+
+             <img src="Thumbs up.jpeg"
+                 alt="Funny selfie with cap and thumbs up"
+                 data-bg="bg-hover-2"
+                 data-col="1" data-row="24"
+                 class="gallery-item tile tile-small rounded-2xl shadow-lg cursor-pointer">
+
+             <!-- Row 4: car + opening + small event -->
+             <img src="car.jpeg"
+                 alt="car"
+                 data-bg="bg-hover-3"
+                 data-col="1" data-row="24"
+                 class="gallery-item tile tile-small rounded-2xl shadow-lg cursor-pointer">
+
+             <img src="opening.jpeg"
+                 alt="opening"
+                 data-bg="bg-hover-1"
+                 data-col="2" data-row="36"
+                 class="gallery-item tile tile-wide rounded-2xl shadow-lg cursor-pointer">
+
+             <img src="WhatsApp Image 2025-11-11 at 10.36.02 PM.jpeg"
+                 alt="Sitting together at an event"
+                 data-bg="bg-hover-1"
+                 data-col="1" data-row="24"
+                 class="gallery-item tile tile-small rounded-2xl shadow-lg cursor-pointer">
+
+             <!-- Row 5: wide footer image -->
+             <img src="WhatsApp Image 2025-11-11 at 10.36.04 PM (2).jpeg"
+                 alt="At a restaurant with friends"
+                 data-bg="bg-hover-1"
+                 data-col="2" data-row="36"
+                 class="gallery-item tile tile-wide rounded-2xl shadow-lg cursor-pointer">
+          </div>
+       </section>
+
+        <!-- Closing Message -->
+        <!-- Added 'fade-in-section' class -->
+        <section class="my-20 p-10 bg-gradient-to-r from-pink-100 to-purple-100 rounded-2xl shadow-inner fade-in-section">
+            <p class="text-xl md:text-2xl text-gray-700 leading-relaxed text-center">
+                Every picture, every joke, every single day... I wouldn't change a thing.
+                You make everything brighter. 🥰
+            </p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center my-16 pb-8">
+            <p class="text-3xl font-display text-pink-300">Here's to many more months! 🥂</p> <!-- Changed to text-pink-300 -->
+            <p class="text-lg text-purple-200 mt-3">Love, Seif ❤️</p> <!-- Changed to text-purple-200 -->
+        </footer>
+
+    </div>
+    <!-- End Main Container -->
+
+    <!-- Modal / Lightbox -->
+    <div id="modal" class="modal fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4" onclick="closeModal()">
+        <!-- Modal Content -->
+        <div class="modal-content relative bg-white/10 p-2 rounded-2xl max-w-4xl w-full max-h-[90vh]" onclick="event.stopPropagation()">
+            <img id="modal-img" src="" alt="Expanded view" class="w-full h-auto max-h-[calc(90vh-1rem)] object-contain rounded-lg">
+        </div>
+        <!-- Close Button -->
+        <button id="modal-close" class="absolute top-4 right-6 text-white text-5xl font-bold transition-transform hover:scale-125" onclick="closeModal()">&times;</button>
+    </div>
+
+    <script>
+        // --- Synth for Music ---
+        const synth = new Tone.Synth().toDestination();
+
+        // --- Modal/Lightbox Logic ---
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modal-img');
+        const galleryItems = document.querySelectorAll('.gallery-item');
+
+        function openModal(src) {
+            modalImg.src = src;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            void modal.offsetWidth; 
+            modal.style.opacity = '1';
+        }
+
+        function closeModal() {
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        galleryItems.forEach(item => {
+            item.addEventListener('click', () => {
+                openModal(item.src);
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+
+        // --- Interactive Background Logic ---
+        const body = document.body;
+        const galleryGrid = document.getElementById('gallery-grid');
+        // Removed 'defaultBgClass' as we now use the gradient
+
+        galleryItems.forEach(item => {
+            const bgClass = item.dataset.bg;
+            if (bgClass) {
+                item.addEventListener('mouseenter', () => {
+                    // Remove other hover classes and add the new one
+                    body.classList.remove('bg-hover-1', 'bg-hover-2', 'bg-hover-3');
+                    body.classList.add(bgClass);
+                });
+            }
+        });
+
+        // **MODIFIED** Reset to default when mouse leaves the gallery grid
+        galleryGrid.addEventListener('mouseleave', () => {
+            // Just remove the hover classes to reveal the gradient underneath
+            body.classList.remove('bg-hover-1', 'bg-hover-2', 'bg-hover-3');
+        });
+
+        // --- NEW: Music Player Logic ---
+        const allPlayButtons = document.querySelectorAll('.play-button');
+        const allTrackItems = document.querySelectorAll('.track-item');
+
+        allPlayButtons.forEach(button => {
+            button.addEventListener('click', async (e) => {
+                // Start audio context on first click
+                await Tone.start();
+
+                const clickedTrack = e.currentTarget.closest('.track-item');
+                const melodyId = e.currentTarget.dataset.melody;
+
+                // Stop any playing synth notes
+                synth.triggerRelease();
+
+                // Check if this track is already playing
+                if (clickedTrack.classList.contains('playing')) {
+                    // If it is, stop it and remove the class
+                    allTrackItems.forEach(item => item.classList.remove('playing'));
+                } else {
+                    // If it's not, stop all others and play this one
+                    // Reset all tracks
+                    allTrackItems.forEach(item => item.classList.remove('playing'));
+                    
+                    // Set current track to playing
+                    clickedTrack.classList.add('playing');
+
+                    // Play the corresponding melody
+                    const now = Tone.now();
+                    if (melodyId === '1') {
+                        // Lorde - simple arpeggio
+                        synth.triggerAttackRelease('C4', '8n', now);
+                        synth.triggerAttackRelease('E4', '8n', now + 0.3);
+                        synth.triggerAttackRelease('G4', '4n', now + 0.6);
+                    } else if (melodyId === '2') {
+                        // Olivia Dean - upbeat major
+                        synth.triggerAttackRelease('F4', '8n', now);
+                        synth.triggerAttackRelease('A4', '8n', now + 0.2);
+                        synth.triggerAttackRelease('C5', '8n', now + 0.4);
+                        synth.triggerAttackRelease('A4', '8n', now + 0.6);
+                    } else if (melodyId === '3') {
+                        // George Ezra - gentle progression
+                        synth.triggerAttackRelease('G4', '4n', now);
+                        synth.triggerAttackRelease('B4', '4n', now + 0.4);
+                        synth.triggerAttackRelease('D5', '2n', now + 0.8);
+                    } else if (melodyId === '4') {
+                        // Midnight Memories - rock/pop
+                        synth.triggerAttackRelease('A4', '8n', now);
+                        synth.triggerAttackRelease('A4', '8n', now + 0.15);
+                        synth.triggerAttackRelease('G4', '8n', now + 0.3);
+                        synth.triggerAttackRelease('A4', '4n', now + 0.45);
+                    } else if (melodyId === '5') {
+                        // Payphone - pop progression
+                        synth.triggerAttackRelease('G4', '8n', now);
+                        synth.triggerAttackRelease('C5', '8n', now + 0.2);
+                        synth.triggerAttackRelease('E5', '8n', now + 0.4);
+                        synth.triggerAttackRelease('D5', '4n', now + 0.6);
+                    } else if (melodyId === '6') {
+                        // Bohemian Rhapsody - intro
+                        synth.triggerAttackRelease('G4', '4n', now);
+                        synth.triggerAttackRelease('A4', '4n', now + 0.4);
+                        synth.triggerAttackRelease('Bb4', '2n', now + 0.8);
+                    }
+                }
+            });
+        });
+
+
+        // --- NEW: Fade-in on Scroll Logic (Intersection Observer) ---
+        const sections = document.querySelectorAll('.fade-in-section');
+
+        const observerOptions = {
+            root: null, // relative to the viewport
+            rootMargin: '0px',
+            threshold: 0.2 // 20% of the item must be visible
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target); // Stop observing once it's visible
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+
+        // --- Image fallback for missing files ---
+        (function() {
+            const placeholderSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">'
+                + '<rect width="100%" height="100%" fill="#f3e8ff"/>'
+                + '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Inter, sans-serif" font-size="28" fill="#7c3aed">Image not found</text>'
+                + '</svg>';
+            const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(placeholderSvg);
+
+            document.querySelectorAll('img').forEach(img => {
+                img.addEventListener('error', () => {
+                    // Prevent infinite loop if placeholder fails
+                    if (!img.dataset._fallbackApplied) {
+                        img.dataset._fallbackApplied = '1';
+                        img.src = placeholder;
+                        img.classList.add('opacity-90');
+                    }
+                });
+            });
+        })();
+
+        // Thumbnail clicks open modal
+        (function() {
+            document.querySelectorAll('.thumb').forEach(t => {
+                t.addEventListener('click', () => openModal(t.src));
+            });
+        })();
+
+        // Reshuffle button removed per user request
+
+        // --- Decorative: shuffle, random tilt, grid-span wiring and staggered reveal ---
+        (function() {
+            const grid = document.getElementById('gallery-grid');
+            if (!grid) return;
+
+            // Shuffle child .gallery-item elements to vary layout each load
+            const nodes = Array.from(grid.querySelectorAll('.gallery-item'));
+            // Fisher-Yates shuffle
+            for (let i = nodes.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [nodes[i], nodes[j]] = [nodes[j], nodes[i]];
+            }
+            nodes.forEach(n => grid.appendChild(n));
+
+            // Re-query items in shuffled order
+            const items = Array.from(grid.querySelectorAll('.gallery-item'));
+
+            items.forEach((img, i) => {
+                // Apply grid column spans based on data attributes (no row spans)
+                const col = parseInt(img.dataset.col || '1', 10);
+                img.style.gridColumn = `span ${Math.min(col, 2)}`; // limit to 2 columns max
+
+                // Staggered reveal delay
+                const delayMs = i * 70; // 70ms stagger
+                img.style.setProperty('--delay', `${delayMs}ms`);
+
+                // Add reveal class for animation
+                img.classList.add('reveal');
+
+                // Ensure consistent stacking without interlacing
+                img.style.zIndex = 10;
+            });
+
+            // Trigger staggered reveal
+            items.forEach((img, i) => {
+                setTimeout(() => img.classList.add('is-visible'), 80 + i * 70);
+            });
+        })();
+
+    </script>
+</body>
+</html>
